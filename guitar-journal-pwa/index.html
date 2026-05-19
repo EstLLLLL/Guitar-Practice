@@ -1,0 +1,3891 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>吉他练习日志</title>
+<meta name="description" content="吉他练习日志 + 音频分析 PWA">
+
+<!-- PWA manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f1a14">
+<meta name="color-scheme" content="light">
+
+<!-- iOS standalone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="吉他练习">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<meta name="format-detection" content="telephone=no">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --paper: #f5f1e8;
+    --paper-light: #faf7f0;
+    --paper-dark: #ede5d3;
+    --ink: #1f1a14;
+    --ink-soft: #3d342a;
+    --muted: #6b5d4f;
+    --muted-light: #9b8c7a;
+    --line: #d4cbb8;
+    --line-soft: #e3dccc;
+    --accent: #b8552a;
+    --accent-dark: #8a3f1f;
+    --accent-light: #d9744b;
+    --sage: #5d7a47;
+    --sage-light: #8aa56f;
+    --gold: #c2901a;
+    --shadow-sm: 0 1px 2px rgba(31, 26, 20, 0.04);
+    --shadow: 0 4px 12px rgba(31, 26, 20, 0.06);
+    --shadow-lg: 0 12px 32px rgba(31, 26, 20, 0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* Paper texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(184, 85, 42, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(93, 122, 71, 0.025) 0%, transparent 50%);
+    opacity: 0.8;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* === HEADER === */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--line);
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .header-left { flex: 1; min-width: 280px; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(38px, 5vw, 56px);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 100;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  h1 .accent {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+
+  /* === BUTTONS === */
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper-light);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .btn:hover {
+    background: var(--paper-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper-light);
+    border-color: var(--ink);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+    color: var(--paper-light);
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    color: var(--paper-light);
+    border-color: var(--accent);
+  }
+
+  .btn-accent:hover {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+  }
+
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover {
+    background: var(--paper-dark);
+    color: var(--ink);
+  }
+
+  .btn-icon {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+  }
+
+  /* === STAT CARDS === */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stat {
+    background: var(--paper-light);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-family: 'Fraunces', serif;
+    font-size: 44px;
+    font-weight: 500;
+    font-variation-settings: 'opsz' 144;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  .stat-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-meta .up { color: var(--sage); }
+  .stat-meta .down { color: var(--accent); }
+
+  /* === SECTIONS === */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .section-title .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* === CHART === */
+  .chart-card {
+    background: var(--paper-light);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 24px 20px;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 280px;
+  }
+
+  /* === TWO COLUMN === */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--paper-light);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+
+  /* === ITEM LISTS === */
+  .item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--paper);
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+
+  .item:hover {
+    border-color: var(--line);
+    background: var(--paper-dark);
+  }
+
+  .item-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .item-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .chord-pill {
+    display: inline-block;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--paper-dark);
+    color: var(--ink);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* Status badges */
+  .status-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .status-learning {
+    background: rgba(194, 144, 26, 0.12);
+    color: var(--gold);
+  }
+
+  .status-in-progress {
+    background: rgba(184, 85, 42, 0.12);
+    color: var(--accent);
+  }
+
+  .status-can-play {
+    background: rgba(93, 122, 71, 0.14);
+    color: var(--sage);
+  }
+
+  .status-mastered {
+    background: var(--ink);
+    color: var(--paper-light);
+  }
+
+  /* === EMPTY STATES === */
+  .empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+
+  /* === AI SUGGESTIONS === */
+  .ai-card {
+    background: linear-gradient(135deg, var(--paper-light) 0%, var(--paper-dark) 100%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ai-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(184, 85, 42, 0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .ai-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .ai-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .ai-title .star { color: var(--accent); }
+
+  .ai-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+
+  .ai-content {
+    background: var(--paper-light);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 22px 24px;
+    min-height: 100px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .ai-content h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 18px 0 8px;
+  }
+
+  .ai-content h3:first-child { margin-top: 0; }
+
+  .ai-content ol, .ai-content ul {
+    margin: 8px 0 12px 20px;
+  }
+
+  .ai-content li {
+    margin-bottom: 6px;
+  }
+
+  .ai-content p { margin-bottom: 10px; }
+
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+
+  .ai-loading-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  .ai-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .ai-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* === SESSIONS LIST === */
+  .session-row {
+    display: grid;
+    grid-template-columns: 100px 80px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--paper);
+    margin-bottom: 6px;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+
+  .session-row:hover {
+    border-color: var(--line);
+    background: var(--paper-light);
+  }
+
+  .session-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .session-duration {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .session-duration .min {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  .session-content {
+    font-size: 13px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .session-content strong {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  @media (max-width: 700px) {
+    .session-row {
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+    .session-date { grid-column: 1; font-size: 11px; }
+    .session-duration { grid-column: 2; grid-row: 1; }
+    .session-content { grid-column: 1 / -1; white-space: normal; }
+  }
+
+  /* === MODAL === */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(31, 26, 20, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-backdrop.show { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: var(--paper-light);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    padding: 28px 32px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.15s ease;
+    font-size: 18px;
+  }
+
+  .modal-close:hover {
+    background: var(--paper-dark);
+    color: var(--ink);
+  }
+
+  .modal-body {
+    padding: 24px 32px 32px;
+  }
+
+  /* === FORM === */
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .field-label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field-input,
+  .field-textarea,
+  .field-select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .field-input:focus,
+  .field-textarea:focus,
+  .field-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--paper-light);
+  }
+
+  .field-textarea {
+    resize: vertical;
+    min-height: 70px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .field-hint {
+    font-size: 12px;
+    color: var(--muted-light);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  /* === EXPANDABLE === */
+  .expand-section {
+    margin-top: 12px;
+  }
+
+  .expand-toggle {
+    background: none;
+    border: none;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 3px;
+  }
+
+  .expand-toggle:hover { color: var(--accent); }
+
+  .hidden { display: none; }
+
+  /* === TOAST === */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--paper-light);
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Decorative quote mark */
+  .corner-mark {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-family: 'Fraunces', serif;
+    font-size: 60px;
+    line-height: 1;
+    color: var(--line);
+    font-weight: 300;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Loading state */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.3s;
+  }
+
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .loading-overlay .label {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  /* small chord input tags */
+  .tag-input-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 8px;
+    min-height: 42px;
+  }
+
+  .tag-input-wrap:focus-within {
+    border-color: var(--accent);
+    background: var(--paper-light);
+  }
+
+  .tag-input-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 6px;
+    font-size: 14px;
+    min-width: 80px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 4px 4px 10px;
+    background: var(--paper-dark);
+    border-radius: 6px;
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  .tag-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .tag-remove:hover { color: var(--accent); background: rgba(184, 85, 42, 0.1); }
+
+  /* delete x on cards */
+  .card-x {
+    background: none;
+    border: none;
+    color: var(--muted-light);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+
+  .item:hover .card-x { opacity: 1; }
+  .card-x:hover { color: var(--accent); background: rgba(184, 85, 42, 0.08); }
+
+  /* Settings menu */
+  .settings-menu {
+    position: relative;
+  }
+
+  .settings-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    background: var(--paper-light);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+    min-width: 200px;
+    z-index: 50;
+    display: none;
+  }
+
+  .settings-dropdown.show { display: block; }
+
+  .menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 12px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .menu-item:hover { background: var(--paper-dark); }
+  .menu-item.danger { color: var(--accent); }
+
+  /* === AUDIO ANALYZER === */
+  .recorder-card {
+    background: var(--paper-light);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+  }
+
+  .rec-type-select {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .rec-type-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+
+  .rec-type-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .rec-type-btn:hover { color: var(--ink); border-color: var(--muted-light); }
+
+  .rec-type-btn.active {
+    background: var(--ink);
+    color: var(--paper-light);
+    border-color: var(--ink);
+  }
+
+  .recorder-top {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .record-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--accent);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .record-btn::before {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .record-btn:hover { transform: scale(1.05); }
+
+  .record-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .record-btn.recording {
+    background: var(--accent);
+    border-color: var(--accent);
+    animation: recordPulse 1.4s ease-in-out infinite;
+  }
+
+  .record-btn.recording::before {
+    background: var(--paper-light);
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+  }
+
+  @keyframes recordPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(184, 85, 42, 0.5); }
+    50% { box-shadow: 0 0 0 12px rgba(184, 85, 42, 0); }
+  }
+
+  .rec-info { flex: 1; min-width: 200px; }
+
+  .rec-timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .rec-status {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .level-meter {
+    width: 100%;
+    max-width: 320px;
+    height: 6px;
+    background: var(--paper-dark);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .level-bar {
+    height: 100%;
+    background: linear-gradient(to right, var(--sage), var(--gold), var(--accent));
+    width: 0%;
+    transition: width 0.05s linear;
+  }
+
+  .rec-result {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .viz-canvas {
+    width: 100%;
+    background: var(--paper);
+    border-radius: 8px;
+    border: 1px solid var(--line-soft);
+    display: block;
+  }
+
+  .viz-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .viz-block { margin-bottom: 14px; }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  @media (max-width: 700px) {
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .metric {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .metric-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .metric-value .unit {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 3px;
+    font-weight: 400;
+  }
+
+  .metric-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--paper-dark);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+
+  .metric-bar-fg {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .metric-judge {
+    font-size: 11px;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .findings-box {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 12px;
+  }
+
+  .findings-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .finding-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    border-bottom: 1px dashed var(--line-soft);
+  }
+
+  .finding-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .finding-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    flex-shrink: 0;
+    padding-top: 2px;
+    min-width: 42px;
+    font-weight: 500;
+  }
+
+  .rec-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* Recording list */
+  .rec-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--paper);
+    margin-bottom: 6px;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+
+  .rec-row:hover {
+    border-color: var(--line);
+    background: var(--paper-light);
+  }
+
+  .rec-row-play {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: var(--paper-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    padding-left: 2px;
+    flex-shrink: 0;
+  }
+
+  .rec-row-play:hover { background: var(--accent); }
+  .rec-row-play.playing { background: var(--accent); }
+
+  .rec-row-info { min-width: 0; }
+
+  .rec-row-title {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rec-row-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .rec-row-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 700px) {
+    .rec-row {
+      grid-template-columns: auto 1fr auto;
+    }
+    .rec-row-stats { grid-column: 1 / -1; text-align: left; }
+  }
+
+  .permission-warning {
+    background: rgba(184, 85, 42, 0.08);
+    border: 1px solid rgba(184, 85, 42, 0.2);
+    color: var(--accent-dark);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .analyzing-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* === iOS PWA & safe area === */
+  html, body {
+    /* Prevent overscroll bouncing past content */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    /* Safe area insets for notched devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    /* Disable text size adjust */
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Larger tap targets on mobile */
+  @media (max-width: 600px) {
+    .btn-sm { min-height: 36px; }
+    .card-x { min-width: 32px; min-height: 32px; }
+    .menu-item { padding: 14px 16px; }
+  }
+  /* Prevent text selection on UI elements */
+  .btn, .record-btn, .rec-type-btn, .menu-item, .nav-link, .card-x, .rec-row-play {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Native iOS-style modal sheet from bottom on mobile */
+  @media (max-width: 600px) {
+    .modal-backdrop.show .modal {
+      border-radius: 16px 16px 0 0;
+      align-self: flex-end;
+      width: 100%;
+      max-width: 100%;
+      max-height: 92vh;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="label">Tuning up<span id="dots">...</span></div>
+</div>
+
+<div class="container">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="eyebrow">练习日志 · Practice Journal</div>
+      <h1>吉他<span class="accent">练习</span>记录</h1>
+      <div class="subtitle" id="subtitle">一周一步，进阶不止于初学者</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div class="settings-menu">
+        <button class="btn btn-icon" id="settingsBtn" title="设置">⋯</button>
+        <div class="settings-dropdown" id="settingsDropdown">
+          <button class="menu-item" onclick="showApiKeyModal()">API Key 配置</button>
+          <button class="menu-item" onclick="exportData()">导出数据 (JSON)</button>
+          <button class="menu-item" onclick="document.getElementById('importFile').click()">导入数据</button>
+          <button class="menu-item" onclick="loadSampleData()">载入示例数据</button>
+          <button class="menu-item danger" onclick="clearAllData()">清空所有数据</button>
+        </div>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+      <button class="btn btn-primary" onclick="openSessionModal()">
+        <span style="font-size:16px; line-height:1;">＋</span>
+        <span>记录练习</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">本周练习</div>
+      <div class="stat-value"><span id="weekMinutes">0</span><span class="stat-unit">分钟</span></div>
+      <div class="stat-meta" id="weekMeta">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">连续天数</div>
+      <div class="stat-value"><span id="streakDays">0</span><span class="stat-unit">天</span></div>
+      <div class="stat-meta" id="streakMeta">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">累计时长</div>
+      <div class="stat-value"><span id="totalHours">0</span><span class="stat-unit">小时</span></div>
+      <div class="stat-meta" id="totalMeta">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">进行中歌曲</div>
+      <div class="stat-value"><span id="activeSongs">0</span><span class="stat-unit">首</span></div>
+      <div class="stat-meta" id="songsMeta">—</div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">练习趋势 <span class="count">最近 30 天</span></h2>
+    </div>
+    <div class="chart-card">
+      <div class="chart-wrap">
+        <canvas id="practiceChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHORDS + SONGS -->
+  <div class="section">
+    <div class="two-col">
+      <!-- CHORDS -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:14px;">
+          <h2 class="section-title">和弦库 <span class="count" id="chordCount">0</span></h2>
+          <button class="btn btn-sm" onclick="openChordModal()">＋ 添加</button>
+        </div>
+        <div class="item-list" id="chordList">
+          <div class="empty">还没有添加和弦</div>
+        </div>
+      </div>
+
+      <!-- SONGS -->
+      <div class="card">
+        <div class="section-header" style="margin-bottom:14px;">
+          <h2 class="section-title">歌曲进度 <span class="count" id="songCount">0</span></h2>
+          <button class="btn btn-sm" onclick="openSongModal()">＋ 添加</button>
+        </div>
+        <div class="item-list" id="songList">
+          <div class="empty">还没有添加歌曲</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI SUGGESTIONS -->
+  <div class="section">
+    <div class="ai-card">
+      <div class="corner-mark">✦</div>
+      <div class="ai-header">
+        <div>
+          <div class="ai-title"><span class="star">✦</span> AI 练习建议</div>
+          <div class="ai-subtitle">基于你的练习记录，给出 3-5 个下一步方向</div>
+        </div>
+        <button class="btn btn-accent" id="aiBtn" onclick="getAISuggestions()">
+          <span>生成建议</span>
+        </button>
+      </div>
+      <div class="ai-content" id="aiContent">
+        <div style="color:var(--muted); font-style:italic; font-family:'Fraunces', serif;">
+          先记录几次练习，然后点 "生成建议" — Claude 会根据你练习的和弦、歌曲、和你想改进的地方，给你下一阶段具体可执行的练习方向 + 类似歌曲推荐。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO ANALYZER -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">音频分析 <span class="count" id="recCount">00</span></h2>
+    </div>
+    <div class="recorder-card">
+      <div id="permissionWarning" class="permission-warning hidden"></div>
+
+      <div class="rec-type-select">
+        <span class="rec-type-label">录音类型</span>
+        <button class="rec-type-btn active" data-rectype="mixed" onclick="setRecType('mixed')">混合</button>
+        <button class="rec-type-btn" data-rectype="single" onclick="setRecType('single')">单音 / 旋律</button>
+        <button class="rec-type-btn" data-rectype="chord" onclick="setRecType('chord')">和弦 / 扫弦</button>
+      </div>
+
+      <div class="recorder-top">
+        <button class="record-btn" id="recordBtn" onclick="toggleRecording()" title="开始/停止录音"></button>
+        <div class="rec-info">
+          <div class="rec-timer" id="recTimer">00:00</div>
+          <div class="rec-status" id="recStatus">点击红点开始 · 建议 15-90 秒</div>
+          <div class="level-meter"><div class="level-bar" id="levelBar"></div></div>
+        </div>
+      </div>
+
+      <div class="rec-result hidden" id="recResult">
+        <div class="viz-block">
+          <div class="viz-label">波形 · 橙色竖线 = 检测到的拨弦点</div>
+          <canvas class="viz-canvas" id="waveCanvas" height="80"></canvas>
+        </div>
+        <div class="viz-block" id="pitchVizBlock">
+          <div class="viz-label">音高 · 横线为半音格 · 点离横线越近越准</div>
+          <canvas class="viz-canvas" id="pitchCanvas" height="110"></canvas>
+        </div>
+        <div class="viz-block">
+          <div class="viz-label">力度包络（RMS）· 每个峰对应一次发声</div>
+          <canvas class="viz-canvas" id="rmsCanvas" height="60"></canvas>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric-label">节拍速度</div>
+            <div class="metric-value" id="metricBpm">—<span class="unit">bpm</span></div>
+            <div class="metric-judge" id="judgeBpm">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">节奏稳定性</div>
+            <div class="metric-value" id="metricTempo">—<span class="unit">/100</span></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fg" id="barTempo" style="background:var(--accent); width:0%;"></div></div>
+            <div class="metric-judge" id="judgeTempo">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">音准偏差</div>
+            <div class="metric-value" id="metricPitch">—<span class="unit">cents</span></div>
+            <div class="metric-judge" id="judgePitch">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">力度均匀度</div>
+            <div class="metric-value" id="metricLoud">—<span class="unit">/100</span></div>
+            <div class="metric-bar-bg"><div class="metric-bar-fg" id="barLoud" style="background:var(--sage); width:0%;"></div></div>
+            <div class="metric-judge" id="judgeLoud">—</div>
+          </div>
+        </div>
+
+        <div class="findings-box" id="findingsBox">
+          <div class="findings-title">⚠ 算法发现的可能问题</div>
+          <div id="findingsList">—</div>
+        </div>
+
+        <div class="rec-actions">
+          <button class="btn btn-sm" onclick="playCurrentRecording()">▶ 播放</button>
+          <button class="btn btn-sm btn-accent" onclick="askAIAboutRecording()">让 AI 解读</button>
+          <button class="btn btn-sm btn-primary" onclick="saveRecording()">保存到历史</button>
+          <button class="btn btn-sm btn-ghost" onclick="discardRecording()">丢弃</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="recordingList" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- SESSIONS -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title">练习历史 <span class="count" id="sessionCount">0</span></h2>
+      <button class="btn btn-ghost btn-sm" id="toggleSessions" onclick="toggleSessions()">显示全部</button>
+    </div>
+    <div id="sessionList"></div>
+  </div>
+</div>
+
+<!-- === SESSION MODAL === -->
+<div class="modal-backdrop" id="sessionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">记录练习</div>
+      <button class="modal-close" onclick="closeModal('sessionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">日期</label>
+          <input type="date" class="field-input" id="sessionDate">
+        </div>
+        <div class="field">
+          <label class="field-label">时长（分钟）</label>
+          <input type="number" class="field-input" id="sessionDuration" min="1" placeholder="30">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">练习的和弦</label>
+        <div class="tag-input-wrap" id="sessionChordWrap">
+          <input type="text" id="sessionChordInput" placeholder="输入后按回车，如 G / Am / Cmaj7">
+        </div>
+        <div class="field-hint">按回车或逗号添加</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">练习的歌曲</label>
+        <div class="tag-input-wrap" id="sessionSongWrap">
+          <input type="text" id="sessionSongInput" placeholder="输入歌名后按回车">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">练习重点 / 技巧</label>
+        <input type="text" class="field-input" id="sessionFocus" placeholder="如：换和弦速度、扫弦节奏、指弹">
+      </div>
+
+      <div class="field">
+        <label class="field-label">需要改进的地方 / 笔记</label>
+        <textarea class="field-textarea" id="sessionNotes" placeholder="今天哪里卡住了？想改进什么？"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal('sessionModal')">取消</button>
+        <button class="btn btn-primary" onclick="saveSession()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === CHORD MODAL === -->
+<div class="modal-backdrop" id="chordModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">添加和弦</div>
+      <button class="modal-close" onclick="closeModal('chordModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">和弦名</label>
+        <input type="text" class="field-input" id="chordName" placeholder="如 G / Am / Cmaj7 / F#m7b5">
+      </div>
+      <div class="field">
+        <label class="field-label">熟练度</label>
+        <select class="field-select" id="chordStatus">
+          <option value="learning">学习中</option>
+          <option value="in-progress">练习中</option>
+          <option value="can-play">能弹</option>
+          <option value="mastered">熟练</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal('chordModal')">取消</button>
+        <button class="btn btn-primary" onclick="saveChord()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === SONG MODAL === -->
+<div class="modal-backdrop" id="songModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">添加歌曲</div>
+      <button class="modal-close" onclick="closeModal('songModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">歌曲名</label>
+        <input type="text" class="field-input" id="songName" placeholder="歌曲名">
+      </div>
+      <div class="field">
+        <label class="field-label">艺术家（可选）</label>
+        <input type="text" class="field-input" id="songArtist" placeholder="艺术家名">
+      </div>
+      <div class="field">
+        <label class="field-label">状态</label>
+        <select class="field-select" id="songStatus">
+          <option value="learning">学习中</option>
+          <option value="in-progress">练习中</option>
+          <option value="can-play">能弹完整</option>
+          <option value="mastered">熟练</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">备注（可选）</label>
+        <textarea class="field-textarea" id="songNotes" placeholder="难点 / 用到的和弦 / 学习目标..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal('songModal')">取消</button>
+        <button class="btn btn-primary" onclick="saveSong()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === API KEY MODAL === -->
+<div class="modal-backdrop" id="apiKeyModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title">Anthropic API Key</div>
+      <button class="modal-close" onclick="hideApiKeyModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:18px;">
+        AI 解读功能需要你自己的 Anthropic API key。Key 仅存在<strong>本设备</strong>的浏览器里，
+        请求直接发到 api.anthropic.com，不经过任何中间服务器。
+        <br><br>
+        在 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:underline;">console.anthropic.com/settings/keys</a>
+        创建 key 后复制过来。
+      </div>
+      <div class="field">
+        <label class="field-label">API Key</label>
+        <input type="password" class="field-input" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label class="field-label">模型</label>
+        <select class="field-select" id="apiModelSelect">
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6（推荐 · 性价比）</option>
+          <option value="claude-opus-4-7">Claude Opus 4.7（最强 · 贵 5×）</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5（最快 · 最便宜）</option>
+        </select>
+      </div>
+      <div style="font-size:11px; color:var(--muted); margin-top:6px; font-family:'JetBrains Mono', monospace;">
+        Sonnet 4.6 ≈ $3 / 1M input · $15 / 1M output<br>
+        典型一次 AI 解读 ≈ 1500-2500 token，每次成本约 $0.01-0.02
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="clearApiKey()" style="margin-right:auto;">清除</button>
+        <button class="btn" onclick="hideApiKeyModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+  // ============================================================
+  // STORAGE POLYFILL
+  // Drop-in replacement for the Claude artifact `window.storage` API.
+  // - localStorage for small text data (sessions, chords, songs, recordings_index)
+  // - IndexedDB for audio blobs (recording_audio_*) which exceed localStorage limits
+  // ============================================================
+  (function setupStoragePolyfill() {
+    const DB_NAME = 'guitar-journal-db';
+    const STORE = 'audio';
+    const NS = 'gj:';   // localStorage namespace prefix
+    let dbPromise = null;
+
+    function openDB() {
+      if (!dbPromise) {
+        dbPromise = new Promise((resolve, reject) => {
+          const req = indexedDB.open(DB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      return dbPromise;
+    }
+
+    async function idbGet(key) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const req = tx.objectStore(STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbSet(key, value) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+      });
+    }
+    async function idbDelete(key) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    const isAudioKey = (k) => k.startsWith('recording_audio_');
+
+    window.storage = {
+      async get(key) {
+        if (isAudioKey(key)) {
+          try {
+            const value = await idbGet(key);
+            return value !== undefined ? { key, value } : null;
+          } catch (e) { return null; }
+        }
+        const value = localStorage.getItem(NS + key);
+        return value !== null ? { key, value } : null;
+      },
+      async set(key, value) {
+        if (isAudioKey(key)) {
+          await idbSet(key, value);
+        } else {
+          try { localStorage.setItem(NS + key, value); }
+          catch (e) { throw new Error('localStorage 已满 — 请导出数据并清理'); }
+        }
+        return { key, value };
+      },
+      async delete(key) {
+        if (isAudioKey(key)) await idbDelete(key);
+        else localStorage.removeItem(NS + key);
+        return { key, deleted: true };
+      }
+    };
+  })();
+
+  // ============================================================
+  // API KEY MANAGEMENT
+  // ============================================================
+  const API_KEY_STORAGE = 'gj:anthropic_api_key';
+  const MODEL_STORAGE = 'gj:anthropic_model';
+  const DEFAULT_MODEL = 'claude-sonnet-4-6';
+
+  function getApiKey() {
+    return (localStorage.getItem(API_KEY_STORAGE) || '').trim();
+  }
+  function setApiKeyValue(key) {
+    localStorage.setItem(API_KEY_STORAGE, (key || '').trim());
+  }
+  function getModel() {
+    return localStorage.getItem(MODEL_STORAGE) || DEFAULT_MODEL;
+  }
+  function setModel(m) {
+    localStorage.setItem(MODEL_STORAGE, m);
+  }
+
+  function showApiKeyModal() {
+    document.getElementById('apiKeyInput').value = getApiKey();
+    const modelSel = document.getElementById('apiModelSelect');
+    if (modelSel) modelSel.value = getModel();
+    document.getElementById('apiKeyModal').classList.add('show');
+    document.getElementById('settingsDropdown')?.classList.remove('show');
+  }
+  function hideApiKeyModal() {
+    document.getElementById('apiKeyModal').classList.remove('show');
+  }
+  function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { toast('请输入 API key'); return; }
+    if (!key.startsWith('sk-ant-')) {
+      if (!confirm('这看起来不像 Anthropic API key（一般 sk-ant-... 开头）。仍要保存吗？')) return;
+    }
+    setApiKeyValue(key);
+    const modelSel = document.getElementById('apiModelSelect');
+    if (modelSel) setModel(modelSel.value);
+    hideApiKeyModal();
+    toast('✓ API key 已保存（仅存在本设备）');
+  }
+  function clearApiKey() {
+    if (!confirm('清除已保存的 API key？')) return;
+    localStorage.removeItem(API_KEY_STORAGE);
+    document.getElementById('apiKeyInput').value = '';
+    toast('已清除');
+  }
+
+  // Wrapped fetch for Anthropic API with proper headers
+  async function callClaudeAPI(messages, maxTokens = 1500) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      showApiKeyModal();
+      const err = new Error('NO_API_KEY');
+      err.noKey = true;
+      throw err;
+    }
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        model: getModel(),
+        max_tokens: maxTokens,
+        messages
+      })
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      if (response.status === 401) throw new Error('API key 无效 (401) — 检查 key 是否正确');
+      if (response.status === 429) throw new Error('请求过快 (429) — 稍等一下再试');
+      throw new Error(`HTTP ${response.status}: ${text.slice(0, 120)}`);
+    }
+    return response.json();
+  }
+
+  // ============================================================
+  // STATE
+  // ============================================================
+  let state = {
+    sessions: [],   // {id, date, duration, chords:[], songs:[], focus, notes}
+    chords: [],     // {id, name, status, dateAdded}
+    songs: []       // {id, name, artist, status, notes, dateAdded}
+  };
+
+  let showAllSessions = false;
+  let chart = null;
+  let sessionChordTags = [];
+  let sessionSongTags = [];
+
+  // ============================================================
+  // STORAGE
+  // ============================================================
+  async function loadState() {
+    try {
+      const keys = ['sessions', 'chords', 'songs'];
+      for (const key of keys) {
+        try {
+          const result = await window.storage.get(key);
+          if (result && result.value) {
+            state[key] = JSON.parse(result.value);
+          }
+        } catch (e) {
+          // Key doesn't exist yet - that's fine
+        }
+      }
+    } catch (e) {
+      console.error('Load error:', e);
+    }
+  }
+
+  async function save(key) {
+    try {
+      await window.storage.set(key, JSON.stringify(state[key]));
+    } catch (e) {
+      console.error('Save error for', key, e);
+      toast('保存失败 — 请稍后再试');
+    }
+  }
+
+  // ============================================================
+  // UTILITIES
+  // ============================================================
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  function todayISO() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
+
+  function daysAgo(n) {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T12:00:00');
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    return `${m}月${day}日`;
+  }
+
+  function shortDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso + 'T12:00:00');
+    return `${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  const STATUS_LABEL = {
+    'learning': '学习中',
+    'in-progress': '练习中',
+    'can-play': '能弹',
+    'mastered': '熟练'
+  };
+
+  // ============================================================
+  // STATS COMPUTATION
+  // ============================================================
+  function computeStats() {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - 6);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekStartISO = weekStart.toISOString().slice(0, 10);
+
+    const prevWeekStart = new Date(weekStart);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const prevWeekStartISO = prevWeekStart.toISOString().slice(0, 10);
+
+    const weekMinutes = state.sessions
+      .filter(s => s.date >= weekStartISO)
+      .reduce((sum, s) => sum + s.duration, 0);
+
+    const prevWeekMinutes = state.sessions
+      .filter(s => s.date >= prevWeekStartISO && s.date < weekStartISO)
+      .reduce((sum, s) => sum + s.duration, 0);
+
+    const totalMinutes = state.sessions.reduce((sum, s) => sum + s.duration, 0);
+    const totalHours = (totalMinutes / 60).toFixed(1);
+
+    // streak: consecutive days ending today (or yesterday) with practice
+    const dateSet = new Set(state.sessions.map(s => s.date));
+    let streak = 0;
+    let cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+
+    // Allow streak to start from yesterday if no session today yet
+    if (!dateSet.has(cursor.toISOString().slice(0, 10))) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (dateSet.has(cursor.toISOString().slice(0, 10))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    const activeSongs = state.songs.filter(s =>
+      s.status === 'learning' || s.status === 'in-progress'
+    ).length;
+
+    return { weekMinutes, prevWeekMinutes, totalMinutes, totalHours, streak, activeSongs };
+  }
+
+  function renderStats() {
+    const s = computeStats();
+    document.getElementById('weekMinutes').textContent = s.weekMinutes;
+    document.getElementById('streakDays').textContent = s.streak;
+    document.getElementById('totalHours').textContent = s.totalHours;
+    document.getElementById('activeSongs').textContent = s.activeSongs;
+
+    // Week vs prev week
+    if (s.prevWeekMinutes > 0) {
+      const diff = s.weekMinutes - s.prevWeekMinutes;
+      const pct = Math.round((diff / s.prevWeekMinutes) * 100);
+      if (diff > 0) {
+        document.getElementById('weekMeta').innerHTML = `<span class="up">↑ +${diff} 分钟</span> vs 上周`;
+      } else if (diff < 0) {
+        document.getElementById('weekMeta').innerHTML = `<span class="down">↓ ${diff} 分钟</span> vs 上周`;
+      } else {
+        document.getElementById('weekMeta').textContent = `与上周持平`;
+      }
+    } else if (s.weekMinutes > 0) {
+      document.getElementById('weekMeta').textContent = '本周首次记录';
+    } else {
+      document.getElementById('weekMeta').textContent = '本周还未练习';
+    }
+
+    // Streak
+    if (s.streak >= 7) {
+      document.getElementById('streakMeta').innerHTML = '<span class="up">🔥 保持节奏</span>';
+    } else if (s.streak >= 3) {
+      document.getElementById('streakMeta').textContent = '稳步前进';
+    } else if (s.streak >= 1) {
+      document.getElementById('streakMeta').textContent = '继续保持';
+    } else {
+      document.getElementById('streakMeta').textContent = '今天开始？';
+    }
+
+    // Total
+    const sessionCount = state.sessions.length;
+    document.getElementById('totalMeta').textContent = `${sessionCount} 次练习`;
+
+    // Songs
+    const total = state.songs.length;
+    document.getElementById('songsMeta').textContent = total > 0 ? `共 ${total} 首入库` : '还没添加歌曲';
+
+    document.getElementById('sessionCount').textContent = String(state.sessions.length).padStart(2, '0');
+    document.getElementById('chordCount').textContent = String(state.chords.length).padStart(2, '0');
+    document.getElementById('songCount').textContent = String(state.songs.length).padStart(2, '0');
+  }
+
+  // ============================================================
+  // CHART
+  // ============================================================
+  function renderChart() {
+    const ctx = document.getElementById('practiceChart');
+    if (!ctx) return;
+
+    // Build last 30 days data
+    const labels = [];
+    const data = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = daysAgo(i);
+      labels.push(shortDate(date));
+      const dayMinutes = state.sessions
+        .filter(s => s.date === date)
+        .reduce((sum, s) => sum + s.duration, 0);
+      data.push(dayMinutes);
+    }
+
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
+      return;
+    }
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '练习时长（分钟）',
+          data,
+          backgroundColor: data.map(v => v > 0 ? 'rgba(184, 85, 42, 0.85)' : 'rgba(212, 203, 184, 0.4)'),
+          borderRadius: 4,
+          borderSkipped: false,
+          barThickness: 'flex',
+          maxBarThickness: 22
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1f1a14',
+            titleColor: '#faf7f0',
+            bodyColor: '#faf7f0',
+            titleFont: { family: 'DM Sans', size: 12, weight: '600' },
+            bodyFont: { family: 'JetBrains Mono', size: 12 },
+            padding: 10,
+            cornerRadius: 6,
+            displayColors: false,
+            callbacks: {
+              label: (ctx) => `${ctx.parsed.y} 分钟`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(212, 203, 184, 0.4)', drawBorder: false },
+            ticks: {
+              font: { family: 'JetBrains Mono', size: 11 },
+              color: '#9b8c7a',
+              callback: (v) => v + 'm'
+            },
+            border: { display: false }
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'JetBrains Mono', size: 10 },
+              color: '#9b8c7a',
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 10
+            },
+            border: { color: '#d4cbb8' }
+          }
+        }
+      }
+    });
+  }
+
+  // ============================================================
+  // CHORDS
+  // ============================================================
+  function renderChords() {
+    const list = document.getElementById('chordList');
+    if (state.chords.length === 0) {
+      list.innerHTML = '<div class="empty">还没有添加和弦</div>';
+      return;
+    }
+    // Sort: most recently practiced first (cross-ref with sessions)
+    const chordsWithMeta = state.chords.map(c => {
+      const sessionsWith = state.sessions.filter(s => s.chords && s.chords.includes(c.name));
+      const lastPracticed = sessionsWith.length > 0
+        ? sessionsWith.sort((a, b) => b.date.localeCompare(a.date))[0].date
+        : null;
+      return { ...c, lastPracticed, timesPracticed: sessionsWith.length };
+    });
+    chordsWithMeta.sort((a, b) => {
+      if (a.lastPracticed && !b.lastPracticed) return -1;
+      if (!a.lastPracticed && b.lastPracticed) return 1;
+      if (a.lastPracticed && b.lastPracticed) return b.lastPracticed.localeCompare(a.lastPracticed);
+      return 0;
+    });
+
+    list.innerHTML = chordsWithMeta.map(c => `
+      <div class="item" data-id="${c.id}">
+        <span class="chord-pill">${escapeHtml(c.name)}</span>
+        <span class="item-name" style="flex:1;">
+          <span class="status-badge status-${c.status}">${STATUS_LABEL[c.status]}</span>
+        </span>
+        <span class="item-meta">${c.lastPracticed ? formatDate(c.lastPracticed) : '未练习'}</span>
+        <button class="card-x" onclick="deleteChord('${c.id}')" title="删除">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function openChordModal() {
+    document.getElementById('chordName').value = '';
+    document.getElementById('chordStatus').value = 'learning';
+    document.getElementById('chordModal').classList.add('show');
+    setTimeout(() => document.getElementById('chordName').focus(), 50);
+  }
+
+  async function saveChord() {
+    const name = document.getElementById('chordName').value.trim();
+    const status = document.getElementById('chordStatus').value;
+    if (!name) { toast('请输入和弦名'); return; }
+
+    // Don't duplicate
+    if (state.chords.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      toast('这个和弦已经在库里了');
+      return;
+    }
+
+    state.chords.push({
+      id: uid(),
+      name,
+      status,
+      dateAdded: todayISO()
+    });
+    await save('chords');
+    closeModal('chordModal');
+    renderChords();
+    renderStats();
+    toast(`已添加 ${name}`);
+  }
+
+  async function deleteChord(id) {
+    if (!confirm('删除这个和弦？')) return;
+    state.chords = state.chords.filter(c => c.id !== id);
+    await save('chords');
+    renderChords();
+    renderStats();
+  }
+
+  // ============================================================
+  // SONGS
+  // ============================================================
+  function renderSongs() {
+    const list = document.getElementById('songList');
+    if (state.songs.length === 0) {
+      list.innerHTML = '<div class="empty">还没有添加歌曲</div>';
+      return;
+    }
+
+    const statusOrder = { 'in-progress': 0, 'learning': 1, 'can-play': 2, 'mastered': 3 };
+    const songsWithMeta = state.songs.map(s => {
+      const sessionsWith = state.sessions.filter(sess => sess.songs && sess.songs.includes(s.name));
+      const lastPracticed = sessionsWith.length > 0
+        ? sessionsWith.sort((a, b) => b.date.localeCompare(a.date))[0].date
+        : null;
+      return { ...s, lastPracticed };
+    });
+
+    songsWithMeta.sort((a, b) => {
+      const so = statusOrder[a.status] - statusOrder[b.status];
+      if (so !== 0) return so;
+      if (a.lastPracticed && !b.lastPracticed) return -1;
+      if (!a.lastPracticed && b.lastPracticed) return 1;
+      if (a.lastPracticed && b.lastPracticed) return b.lastPracticed.localeCompare(a.lastPracticed);
+      return 0;
+    });
+
+    list.innerHTML = songsWithMeta.map(s => `
+      <div class="item" data-id="${s.id}">
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:2px;">
+            <span class="item-name" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(s.name)}</span>
+            <span class="status-badge status-${s.status}">${STATUS_LABEL[s.status]}</span>
+          </div>
+          ${s.artist ? `<div style="font-size:12px; color:var(--muted); font-family:'Fraunces',serif; font-style:italic;">${escapeHtml(s.artist)}</div>` : ''}
+        </div>
+        <span class="item-meta">${s.lastPracticed ? formatDate(s.lastPracticed) : '未练习'}</span>
+        <button class="card-x" onclick="cycleSongStatus('${s.id}')" title="更新状态">↻</button>
+        <button class="card-x" onclick="deleteSong('${s.id}')" title="删除">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function openSongModal() {
+    document.getElementById('songName').value = '';
+    document.getElementById('songArtist').value = '';
+    document.getElementById('songStatus').value = 'learning';
+    document.getElementById('songNotes').value = '';
+    document.getElementById('songModal').classList.add('show');
+    setTimeout(() => document.getElementById('songName').focus(), 50);
+  }
+
+  async function saveSong() {
+    const name = document.getElementById('songName').value.trim();
+    const artist = document.getElementById('songArtist').value.trim();
+    const status = document.getElementById('songStatus').value;
+    const notes = document.getElementById('songNotes').value.trim();
+    if (!name) { toast('请输入歌曲名'); return; }
+
+    if (state.songs.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+      toast('这首歌已经在库里了');
+      return;
+    }
+
+    state.songs.push({
+      id: uid(),
+      name, artist, status, notes,
+      dateAdded: todayISO()
+    });
+    await save('songs');
+    closeModal('songModal');
+    renderSongs();
+    renderStats();
+    toast(`已添加《${name}》`);
+  }
+
+  async function cycleSongStatus(id) {
+    const song = state.songs.find(s => s.id === id);
+    if (!song) return;
+    const order = ['learning', 'in-progress', 'can-play', 'mastered'];
+    const i = order.indexOf(song.status);
+    song.status = order[(i + 1) % order.length];
+    await save('songs');
+    renderSongs();
+    renderStats();
+    toast(`${song.name} → ${STATUS_LABEL[song.status]}`);
+  }
+
+  async function deleteSong(id) {
+    if (!confirm('删除这首歌？')) return;
+    state.songs = state.songs.filter(s => s.id !== id);
+    await save('songs');
+    renderSongs();
+    renderStats();
+  }
+
+  // ============================================================
+  // SESSIONS
+  // ============================================================
+  function renderSessions() {
+    const list = document.getElementById('sessionList');
+    if (state.sessions.length === 0) {
+      list.innerHTML = '<div class="empty" style="padding:40px;">还没有练习记录 — 点 "记录练习" 开始</div>';
+      document.getElementById('toggleSessions').style.display = 'none';
+      return;
+    }
+
+    const sorted = [...state.sessions].sort((a, b) => {
+      if (a.date !== b.date) return b.date.localeCompare(a.date);
+      return b.id.localeCompare(a.id);
+    });
+
+    const toShow = showAllSessions ? sorted : sorted.slice(0, 6);
+
+    list.innerHTML = toShow.map(s => {
+      const contentParts = [];
+      if (s.chords && s.chords.length > 0) {
+        contentParts.push(`<strong>和弦:</strong> ${s.chords.join(', ')}`);
+      }
+      if (s.songs && s.songs.length > 0) {
+        contentParts.push(`<strong>歌曲:</strong> ${s.songs.join(', ')}`);
+      }
+      if (s.focus) contentParts.push(`<strong>重点:</strong> ${escapeHtml(s.focus)}`);
+      if (s.notes) contentParts.push(`<strong>笔记:</strong> ${escapeHtml(s.notes)}`);
+
+      return `
+        <div class="session-row">
+          <div class="session-date">${formatDate(s.date)}</div>
+          <div class="session-duration">${s.duration}<span class="min">min</span></div>
+          <div class="session-content">${contentParts.join(' · ') || '<span style="font-style:italic;">无详细记录</span>'}</div>
+          <button class="card-x" onclick="deleteSession('${s.id}')" title="删除" style="opacity:0.6;">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    const btn = document.getElementById('toggleSessions');
+    if (state.sessions.length > 6) {
+      btn.style.display = 'inline-flex';
+      btn.textContent = showAllSessions ? `收起 (显示 ${state.sessions.length})` : `显示全部 (${state.sessions.length})`;
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  function toggleSessions() {
+    showAllSessions = !showAllSessions;
+    renderSessions();
+  }
+
+  function openSessionModal() {
+    document.getElementById('sessionDate').value = todayISO();
+    document.getElementById('sessionDuration').value = '';
+    document.getElementById('sessionChordInput').value = '';
+    document.getElementById('sessionSongInput').value = '';
+    document.getElementById('sessionFocus').value = '';
+    document.getElementById('sessionNotes').value = '';
+    sessionChordTags = [];
+    sessionSongTags = [];
+    renderTagInputs();
+    document.getElementById('sessionModal').classList.add('show');
+    setTimeout(() => document.getElementById('sessionDuration').focus(), 50);
+  }
+
+  async function saveSession() {
+    const date = document.getElementById('sessionDate').value;
+    const duration = parseInt(document.getElementById('sessionDuration').value);
+    const focus = document.getElementById('sessionFocus').value.trim();
+    const notes = document.getElementById('sessionNotes').value.trim();
+
+    // Flush any pending tag input
+    const chordPending = document.getElementById('sessionChordInput').value.trim();
+    if (chordPending) sessionChordTags.push(chordPending);
+    const songPending = document.getElementById('sessionSongInput').value.trim();
+    if (songPending) sessionSongTags.push(songPending);
+
+    if (!date) { toast('请选择日期'); return; }
+    if (!duration || duration <= 0) { toast('请输入有效的练习时长'); return; }
+
+    state.sessions.push({
+      id: uid(),
+      date, duration,
+      chords: [...sessionChordTags],
+      songs: [...sessionSongTags],
+      focus, notes
+    });
+
+    // Auto-add new chords to library (as "learning")
+    for (const chordName of sessionChordTags) {
+      if (!state.chords.some(c => c.name.toLowerCase() === chordName.toLowerCase())) {
+        state.chords.push({
+          id: uid(),
+          name: chordName,
+          status: 'learning',
+          dateAdded: todayISO()
+        });
+      }
+    }
+
+    // Auto-add new songs to library
+    for (const songName of sessionSongTags) {
+      if (!state.songs.some(s => s.name.toLowerCase() === songName.toLowerCase())) {
+        state.songs.push({
+          id: uid(),
+          name: songName,
+          artist: '',
+          status: 'learning',
+          notes: '',
+          dateAdded: todayISO()
+        });
+      }
+    }
+
+    await Promise.all([save('sessions'), save('chords'), save('songs')]);
+
+    closeModal('sessionModal');
+    renderAll();
+    toast(`✓ 已记录 ${duration} 分钟练习`);
+  }
+
+  async function deleteSession(id) {
+    if (!confirm('删除这条练习记录？')) return;
+    state.sessions = state.sessions.filter(s => s.id !== id);
+    await save('sessions');
+    renderAll();
+  }
+
+  // ============================================================
+  // TAG INPUTS (for session modal)
+  // ============================================================
+  function renderTagInputs() {
+    renderTagInput('sessionChordWrap', 'sessionChordInput', sessionChordTags, (tags) => sessionChordTags = tags);
+    renderTagInput('sessionSongWrap', 'sessionSongInput', sessionSongTags, (tags) => sessionSongTags = tags);
+  }
+
+  function renderTagInput(wrapId, inputId, tags, setTags) {
+    const wrap = document.getElementById(wrapId);
+    const existingInput = document.getElementById(inputId);
+    const currentValue = existingInput ? existingInput.value : '';
+    const placeholder = existingInput ? existingInput.placeholder : '';
+
+    // Clear existing tags (keep input)
+    [...wrap.querySelectorAll('.tag')].forEach(t => t.remove());
+
+    // Add tags before input
+    tags.forEach((tag, idx) => {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.innerHTML = `${escapeHtml(tag)} <button class="tag-remove" type="button">×</button>`;
+      span.querySelector('.tag-remove').onclick = () => {
+        setTags(tags.filter((_, i) => i !== idx));
+        renderTagInputs();
+      };
+      wrap.insertBefore(span, existingInput);
+    });
+
+    existingInput.value = currentValue;
+    existingInput.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const v = existingInput.value.trim().replace(/,$/, '');
+        if (v && !tags.includes(v)) {
+          tags.push(v);
+          setTags(tags);
+          renderTagInputs();
+          // focus back
+          setTimeout(() => document.getElementById(inputId).focus(), 0);
+        } else {
+          existingInput.value = '';
+        }
+      } else if (e.key === 'Backspace' && existingInput.value === '' && tags.length > 0) {
+        setTags(tags.slice(0, -1));
+        renderTagInputs();
+        setTimeout(() => document.getElementById(inputId).focus(), 0);
+      }
+    };
+  }
+
+  // ============================================================
+  // AI SUGGESTIONS
+  // ============================================================
+  async function getAISuggestions() {
+    if (state.sessions.length === 0) {
+      toast('先记录几次练习再生成建议吧');
+      return;
+    }
+
+    const btn = document.getElementById('aiBtn');
+    const content = document.getElementById('aiContent');
+    btn.disabled = true;
+    btn.innerHTML = '<span>生成中...</span>';
+    content.innerHTML = `
+      <div class="ai-loading">
+        <div class="ai-loading-dot"></div>
+        <div class="ai-loading-dot"></div>
+        <div class="ai-loading-dot"></div>
+        <span>Claude 正在分析你的练习记录...</span>
+      </div>
+    `;
+
+    // Build context for Claude
+    const recentSessions = [...state.sessions]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 14);
+
+    const stats = computeStats();
+
+    const summary = {
+      practice_summary: {
+        total_sessions: state.sessions.length,
+        total_minutes: stats.totalMinutes,
+        week_minutes: stats.weekMinutes,
+        current_streak_days: stats.streak,
+        avg_session_minutes: state.sessions.length > 0
+          ? Math.round(stats.totalMinutes / state.sessions.length)
+          : 0
+      },
+      chords_library: state.chords.map(c => ({ name: c.name, status: c.status })),
+      songs_library: state.songs.map(s => ({
+        name: s.name,
+        artist: s.artist || null,
+        status: s.status,
+        notes: s.notes || null
+      })),
+      recent_sessions: recentSessions.map(s => ({
+        date: s.date,
+        duration_min: s.duration,
+        chords: s.chords || [],
+        songs: s.songs || [],
+        focus: s.focus || null,
+        notes: s.notes || null
+      }))
+    };
+
+    const prompt = `你是一位经验丰富的吉他老师。这是一位卡在进阶初学者水平的吉他学习者的练习记录，请基于具体数据给出针对性建议。
+
+# 练习数据
+\`\`\`json
+${JSON.stringify(summary, null, 2)}
+\`\`\`
+
+# 任务
+请用中文回复，按以下结构组织（用 markdown 标题），简洁、具体、可执行：
+
+## 📊 我看到的（2-3 句）
+基于数据，识别一个最值得关注的模式或瓶颈。要具体，引用实际数据（如"你这两周只练了 A/Am/E 三个开放和弦"或"《XX 歌》出现 5 次但状态没变化"），不要泛泛而谈。
+
+## 🎯 接下来 1-2 周练什么（3-5 条）
+每条要具体到可以今天就开始：
+- 具体的技巧 / 和弦 / 节奏型（不要只说"练扫弦"，说"练 4/4 D-DU-UDU 扫弦节奏"）
+- 为什么（针对什么瓶颈或为后续打基础）
+- 怎么练（每天多少分钟、什么练习方法）
+
+## 🎵 类似歌曲推荐（3 首）
+基于他/她已经在练的歌和水平，推荐 3 首：
+- 歌名 - 艺术家
+- 为什么适合（用到哪些他/她已经熟悉的和弦/技巧、新挑战是什么）
+- 难度等级（比当前歌曲简单/相似/略难）
+
+要求：
+- 直接给建议，不要说"作为吉他老师"之类的话
+- 用具体的和弦名、技巧术语
+- 推荐的歌曲要真实存在，且适合进阶初学者
+- 避免泛泛"多练习""保持耐心"这类废话`;
+
+    try {
+      const data = await callClaudeAPI([{ role: "user", content: prompt }], 1500);
+      const text = (data.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('\n');
+
+      content.innerHTML = renderMarkdown(text);
+    } catch (e) {
+      console.error('AI error:', e);
+      if (e.noKey) {
+        content.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:14px 0;">需要配置 Anthropic API key 才能用 AI 功能。请在弹出的窗口里输入，或之后点 ⋯ → API Key 配置。</div>`;
+      } else {
+        content.innerHTML = `<div style="color:var(--accent);">生成失败：${e.message || '未知错误'}</div>`;
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>重新生成</span>';
+    }
+  }
+
+  // Minimal markdown renderer (headers, bold, lists, paragraphs)
+  function renderMarkdown(md) {
+    if (!md) return '';
+    const lines = md.split('\n');
+    let html = '';
+    let inList = false;
+    let listType = null;
+
+    const closeList = () => {
+      if (inList) {
+        html += listType === 'ol' ? '</ol>' : '</ul>';
+        inList = false;
+        listType = null;
+      }
+    };
+
+    const inlineMd = (s) => {
+      return escapeHtml(s)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code style="font-family:JetBrains Mono,monospace; background:var(--paper-dark); padding:1px 5px; border-radius:3px; font-size:0.9em;">$1</code>');
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) { closeList(); continue; }
+
+      if (line.startsWith('### ')) {
+        closeList();
+        html += `<h3 style="font-size:15px; margin-top:14px;">${inlineMd(line.slice(4))}</h3>`;
+      } else if (line.startsWith('## ')) {
+        closeList();
+        html += `<h3>${inlineMd(line.slice(3))}</h3>`;
+      } else if (line.startsWith('# ')) {
+        closeList();
+        html += `<h3 style="font-size:18px;">${inlineMd(line.slice(2))}</h3>`;
+      } else if (/^\d+\.\s/.test(line)) {
+        if (!inList || listType !== 'ol') {
+          closeList();
+          html += '<ol>';
+          inList = true;
+          listType = 'ol';
+        }
+        html += `<li>${inlineMd(line.replace(/^\d+\.\s/, ''))}</li>`;
+      } else if (line.startsWith('- ') || line.startsWith('* ')) {
+        if (!inList || listType !== 'ul') {
+          closeList();
+          html += '<ul>';
+          inList = true;
+          listType = 'ul';
+        }
+        html += `<li>${inlineMd(line.slice(2))}</li>`;
+      } else {
+        closeList();
+        html += `<p>${inlineMd(line)}</p>`;
+      }
+    }
+    closeList();
+    return html;
+  }
+
+  // ============================================================
+  // MODALS
+  // ============================================================
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+
+  // Close on backdrop click
+  document.querySelectorAll('.modal-backdrop').forEach(b => {
+    b.addEventListener('click', (e) => {
+      if (e.target === b) b.classList.remove('show');
+    });
+  });
+
+  // Close on escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.show').forEach(b => b.classList.remove('show'));
+      document.getElementById('settingsDropdown').classList.remove('show');
+    }
+  });
+
+  // Settings dropdown
+  document.getElementById('settingsBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('settingsDropdown').classList.toggle('show');
+  });
+  document.addEventListener('click', () => {
+    document.getElementById('settingsDropdown').classList.remove('show');
+  });
+
+  // ============================================================
+  // DATA MANAGEMENT
+  // ============================================================
+  async function exportData() {
+    const json = JSON.stringify(state, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `guitar-practice-${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('已导出数据');
+  }
+
+  async function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.sessions || !data.chords || !data.songs) {
+        toast('文件格式不正确');
+        return;
+      }
+      if (!confirm('导入将覆盖当前所有数据，确定吗？')) return;
+      state.sessions = data.sessions;
+      state.chords = data.chords;
+      state.songs = data.songs;
+      await Promise.all([save('sessions'), save('chords'), save('songs')]);
+      renderAll();
+      toast('导入成功');
+    } catch (e) {
+      toast('导入失败：' + e.message);
+    }
+    event.target.value = '';
+  }
+
+  async function clearAllData() {
+    if (!confirm('确定要清空所有练习记录、和弦库、歌曲库吗？此操作不可撤销。')) return;
+    if (!confirm('再次确认：所有数据将被永久删除。')) return;
+    state.sessions = [];
+    state.chords = [];
+    state.songs = [];
+    await Promise.all([save('sessions'), save('chords'), save('songs')]);
+    renderAll();
+    toast('已清空所有数据');
+  }
+
+  async function loadSampleData() {
+    if (state.sessions.length > 0 || state.chords.length > 0 || state.songs.length > 0) {
+      if (!confirm('当前已有数据，载入示例将覆盖。确定？')) return;
+    }
+    // 生成最近 14 天的示例数据
+    const sessions = [];
+    const chords = ['G', 'C', 'D', 'Em', 'Am', 'F', 'Dm', 'A'];
+    const songs = ['Wonderwall', 'Knockin\' on Heaven\'s Door', '安河桥', '十年'];
+    for (let i = 13; i >= 0; i--) {
+      if (Math.random() > 0.3) {  // 70% 练习日
+        const date = daysAgo(i);
+        const duration = 20 + Math.floor(Math.random() * 40);
+        const chordCount = 2 + Math.floor(Math.random() * 4);
+        const sessionChords = [...chords].sort(() => Math.random() - 0.5).slice(0, chordCount);
+        const sessionSongs = Math.random() > 0.5 ? [songs[Math.floor(Math.random() * songs.length)]] : [];
+        sessions.push({
+          id: uid() + i,
+          date, duration,
+          chords: sessionChords,
+          songs: sessionSongs,
+          focus: ['换和弦速度', '扫弦节奏', '指弹', 'F 大横按', '节奏稳定性'][Math.floor(Math.random() * 5)],
+          notes: ''
+        });
+      }
+    }
+    state.sessions = sessions;
+    state.chords = chords.map(c => ({
+      id: uid() + c, name: c,
+      status: c === 'F' ? 'learning' : (c === 'G' || c === 'C' ? 'can-play' : 'in-progress'),
+      dateAdded: daysAgo(14)
+    }));
+    state.songs = [
+      { id: uid() + '1', name: 'Wonderwall', artist: 'Oasis', status: 'in-progress', notes: 'Em7-G-Dsus4-A7sus4', dateAdded: daysAgo(14) },
+      { id: uid() + '2', name: 'Knockin\' on Heaven\'s Door', artist: 'Bob Dylan', status: 'can-play', notes: '', dateAdded: daysAgo(10) },
+      { id: uid() + '3', name: '安河桥', artist: '宋冬野', status: 'learning', notes: '', dateAdded: daysAgo(5) },
+      { id: uid() + '4', name: '十年', artist: '陈奕迅', status: 'in-progress', notes: '', dateAdded: daysAgo(8) }
+    ];
+    await Promise.all([save('sessions'), save('chords'), save('songs')]);
+    renderAll();
+    toast('已载入示例数据');
+  }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderAll() {
+    renderStats();
+    renderChart();
+    renderChords();
+    renderSongs();
+    renderSessions();
+  }
+
+  // ============================================================
+  // ============================================================
+  // AUDIO ANALYZER
+  // ============================================================
+  // ============================================================
+
+  let recState = {
+    type: 'mixed',          // 'mixed' | 'single' | 'chord'
+    mediaRecorder: null,
+    audioStream: null,
+    audioChunks: [],
+    startTime: null,
+    timerInterval: null,
+    levelInterval: null,
+    isRecording: false,
+    currentBlob: null,
+    currentAnalysis: null,
+    audioContext: null,
+    analyserNode: null,
+    playbackAudio: null,
+    playbackUrl: null
+  };
+
+  let recordings = [];
+
+  // ============================================================
+  // STORAGE for recordings
+  // ============================================================
+  async function loadRecordings() {
+    try {
+      const result = await window.storage.get('recordings_index');
+      if (result && result.value) recordings = JSON.parse(result.value);
+    } catch (e) { /* no recordings yet */ }
+  }
+
+  async function saveRecordingsList() {
+    try {
+      await window.storage.set('recordings_index', JSON.stringify(recordings));
+    } catch (e) {
+      console.error('save recordings list:', e);
+      throw e;
+    }
+  }
+
+  async function saveRecordingAudio(id, base64) {
+    await window.storage.set(`recording_audio_${id}`, base64);
+  }
+
+  async function loadRecordingAudio(id) {
+    try {
+      const r = await window.storage.get(`recording_audio_${id}`);
+      if (r && r.value) return r.value;
+    } catch (e) {}
+    return null;
+  }
+
+  async function deleteRecordingAudio(id) {
+    try { await window.storage.delete(`recording_audio_${id}`); } catch (e) {}
+  }
+
+  // ============================================================
+  // RECORDING (MediaRecorder)
+  // ============================================================
+  function setRecType(type) {
+    recState.type = type;
+    document.querySelectorAll('.rec-type-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.rectype === type);
+    });
+  }
+
+  async function toggleRecording() {
+    if (recState.isRecording) {
+      await stopRecording();
+    } else {
+      await startRecording();
+    }
+  }
+
+  async function startRecording() {
+    document.getElementById('permissionWarning').classList.add('hidden');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showPermissionError('浏览器不支持麦克风访问');
+      return;
+    }
+    if (typeof MediaRecorder === 'undefined') {
+      showPermissionError('浏览器不支持 MediaRecorder API');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+      recState.audioStream = stream;
+
+      // AudioContext (lazy create, resume if suspended)
+      if (!recState.audioContext) {
+        recState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (recState.audioContext.state === 'suspended') {
+        await recState.audioContext.resume();
+      }
+
+      // Level meter via AnalyserNode
+      const source = recState.audioContext.createMediaStreamSource(stream);
+      recState.analyserNode = recState.audioContext.createAnalyser();
+      recState.analyserNode.fftSize = 512;
+      source.connect(recState.analyserNode);
+
+      const levelData = new Uint8Array(recState.analyserNode.frequencyBinCount);
+      const levelBar = document.getElementById('levelBar');
+      recState.levelInterval = setInterval(() => {
+        recState.analyserNode.getByteFrequencyData(levelData);
+        let sum = 0;
+        for (let i = 0; i < levelData.length; i++) sum += levelData[i];
+        const avg = sum / levelData.length;
+        const pct = Math.min(100, (avg / 100) * 100);
+        levelBar.style.width = pct + '%';
+      }, 50);
+
+      // MediaRecorder
+      let mimeType = '';
+      const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+      for (const m of candidates) {
+        if (MediaRecorder.isTypeSupported(m)) { mimeType = m; break; }
+      }
+      recState.mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 64000 })
+        : new MediaRecorder(stream);
+      recState.audioChunks = [];
+      recState.mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recState.audioChunks.push(e.data);
+      };
+      recState.mediaRecorder.onstop = async () => {
+        const type = recState.mediaRecorder.mimeType || 'audio/webm';
+        const blob = new Blob(recState.audioChunks, { type });
+        recState.currentBlob = blob;
+        try {
+          await analyzeRecording(blob);
+        } catch (err) {
+          console.error('Analysis error:', err);
+          document.getElementById('recStatus').textContent = '分析失败：' + err.message;
+        }
+      };
+      recState.mediaRecorder.start();
+
+      // UI state
+      recState.isRecording = true;
+      recState.startTime = Date.now();
+      document.getElementById('recordBtn').classList.add('recording');
+      document.getElementById('recStatus').textContent = '正在录音... 再次点击停止';
+      document.getElementById('recResult').classList.add('hidden');
+
+      recState.timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - recState.startTime) / 1000);
+        const m = Math.floor(elapsed / 60);
+        const s = elapsed % 60;
+        document.getElementById('recTimer').textContent =
+          `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (elapsed >= 180) stopRecording();  // hard cap at 3 minutes
+      }, 250);
+    } catch (e) {
+      console.error('getUserMedia error:', e);
+      showPermissionError('无法访问麦克风：' + (e.message || '权限被拒绝'));
+    }
+  }
+
+  function showPermissionError(msg) {
+    const w = document.getElementById('permissionWarning');
+    w.textContent = msg;
+    w.classList.remove('hidden');
+  }
+
+  async function stopRecording() {
+    if (!recState.isRecording) return;
+    recState.isRecording = false;
+
+    if (recState.mediaRecorder && recState.mediaRecorder.state !== 'inactive') {
+      recState.mediaRecorder.stop();
+    }
+    if (recState.audioStream) {
+      recState.audioStream.getTracks().forEach(t => t.stop());
+      recState.audioStream = null;
+    }
+    if (recState.timerInterval) clearInterval(recState.timerInterval);
+    if (recState.levelInterval) clearInterval(recState.levelInterval);
+    document.getElementById('recordBtn').classList.remove('recording');
+    document.getElementById('recStatus').innerHTML = '<span class="analyzing-spinner"></span>正在分析音频...';
+    document.getElementById('levelBar').style.width = '0%';
+  }
+
+  // ============================================================
+  // DSP — FFT, YIN, downsample, onset detection, RMS
+  // ============================================================
+
+  // In-place radix-2 Cooley–Tukey FFT.
+  function fft(real, imag) {
+    const n = real.length;
+    let j = 0;
+    for (let i = 1; i < n; i++) {
+      let bit = n >> 1;
+      for (; j & bit; bit >>= 1) j ^= bit;
+      j ^= bit;
+      if (i < j) {
+        let tr = real[i]; real[i] = real[j]; real[j] = tr;
+        tr = imag[i]; imag[i] = imag[j]; imag[j] = tr;
+      }
+    }
+    for (let size = 2; size <= n; size *= 2) {
+      const half = size / 2;
+      const step = -2 * Math.PI / size;
+      for (let start = 0; start < n; start += size) {
+        for (let k = 0; k < half; k++) {
+          const angle = step * k;
+          const cs = Math.cos(angle);
+          const sn = Math.sin(angle);
+          const i1 = start + k;
+          const i2 = i1 + half;
+          const tr = cs * real[i2] - sn * imag[i2];
+          const ti = cs * imag[i2] + sn * real[i2];
+          real[i2] = real[i1] - tr;
+          imag[i2] = imag[i1] - ti;
+          real[i1] += tr;
+          imag[i1] += ti;
+        }
+      }
+    }
+  }
+
+  // Hann-windowed magnitude spectrum, length n/2
+  function magSpectrum(frame) {
+    const n = frame.length;
+    const re = new Float32Array(n);
+    const im = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (n - 1));
+      re[i] = frame[i] * w;
+    }
+    fft(re, im);
+    const half = n / 2;
+    const mag = new Float32Array(half);
+    for (let i = 0; i < half; i++) mag[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+    return mag;
+  }
+
+  // YIN pitch detection on a single window
+  function yinPitch(buffer, sampleRate) {
+    const tauMin = Math.max(2, Math.floor(sampleRate / 1500));
+    const tauMax = Math.min(Math.floor(buffer.length / 2), Math.floor(sampleRate / 70));
+    if (tauMax <= tauMin + 2) return { freq: 0, confidence: 0 };
+    const yin = new Float32Array(tauMax);
+    for (let tau = 1; tau < tauMax; tau++) {
+      let sum = 0;
+      for (let i = 0; i < tauMax; i++) {
+        const d = buffer[i] - buffer[i + tau];
+        sum += d * d;
+      }
+      yin[tau] = sum;
+    }
+    yin[0] = 1;
+    let cum = 0;
+    for (let tau = 1; tau < tauMax; tau++) {
+      cum += yin[tau];
+      yin[tau] *= tau / (cum || 1);
+    }
+    const threshold = 0.15;
+    let tau = tauMin;
+    while (tau < tauMax - 1) {
+      if (yin[tau] < threshold) {
+        while (tau + 1 < tauMax && yin[tau + 1] < yin[tau]) tau++;
+        break;
+      }
+      tau++;
+    }
+    if (tau >= tauMax - 1 || yin[tau] >= threshold) return { freq: 0, confidence: 0 };
+    // Parabolic interpolation
+    const y0 = tau > 0 ? yin[tau - 1] : yin[tau];
+    const y1 = yin[tau];
+    const y2 = tau + 1 < tauMax ? yin[tau + 1] : yin[tau];
+    const a = (y0 - 2 * y1 + y2) / 2;
+    const b = (y2 - y0) / 2;
+    const refined = a !== 0 ? tau - b / (2 * a) : tau;
+    return { freq: sampleRate / refined, confidence: 1 - y1 };
+  }
+
+  function freqToMidi(f) { return f > 0 ? 69 + 12 * Math.log2(f / 440) : -1; }
+
+  function midiToName(midi) {
+    const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const n = Math.round(midi);
+    return names[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1);
+  }
+
+  function downsample(samples, fromRate, toRate) {
+    if (toRate >= fromRate) return samples;
+    const ratio = fromRate / toRate;
+    const newLen = Math.floor(samples.length / ratio);
+    const out = new Float32Array(newLen);
+    for (let i = 0; i < newLen; i++) {
+      const src = i * ratio;
+      const i0 = Math.floor(src);
+      const i1 = Math.min(i0 + 1, samples.length - 1);
+      const frac = src - i0;
+      out[i] = samples[i0] * (1 - frac) + samples[i1] * frac;
+    }
+    return out;
+  }
+
+  function toMono(audioBuffer) {
+    const len = audioBuffer.length;
+    const out = new Float32Array(len);
+    if (audioBuffer.numberOfChannels === 1) {
+      out.set(audioBuffer.getChannelData(0));
+    } else {
+      const L = audioBuffer.getChannelData(0);
+      const R = audioBuffer.getChannelData(1);
+      for (let i = 0; i < len; i++) out[i] = (L[i] + R[i]) / 2;
+    }
+    return out;
+  }
+
+  // Yield to UI thread
+  function yieldUI() { return new Promise(r => setTimeout(r, 0)); }
+
+  // ============================================================
+  // ANALYSIS PIPELINE
+  // ============================================================
+  async function analyzeRecording(blob) {
+    if (!recState.audioContext) {
+      recState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await recState.audioContext.decodeAudioData(arrayBuffer.slice(0));
+
+    const nativeSamples = toMono(audioBuffer);
+    const nativeRate = audioBuffer.sampleRate;
+    const targetRate = 16000;
+    const samples = downsample(nativeSamples, nativeRate, targetRate);
+    const duration = audioBuffer.duration;
+
+    // --- 1. RMS envelope (20 ms hop, 40 ms window) ---
+    const rmsHop = Math.floor(targetRate * 0.02);
+    const rmsWin = Math.floor(targetRate * 0.04);
+    const rms = [];
+    for (let i = 0; i + rmsWin < samples.length; i += rmsHop) {
+      let sum = 0;
+      for (let j = 0; j < rmsWin; j++) sum += samples[i + j] ** 2;
+      rms.push(Math.sqrt(sum / rmsWin));
+    }
+    await yieldUI();
+
+    // --- 2. Onset detection via spectral flux ---
+    const fftSize = 1024;
+    const onsetHop = 256;
+    const flux = [];
+    const fluxTimes = [];
+    let prevMag = null;
+    let frameCount = 0;
+    for (let i = 0; i + fftSize < samples.length; i += onsetHop) {
+      const frame = samples.slice(i, i + fftSize);
+      const mag = magSpectrum(frame);
+      if (prevMag) {
+        let s = 0;
+        for (let k = 0; k < mag.length; k++) {
+          const d = mag[k] - prevMag[k];
+          if (d > 0) s += d;
+        }
+        flux.push(s);
+      } else flux.push(0);
+      fluxTimes.push(i / targetRate);
+      prevMag = mag;
+      frameCount++;
+      if (frameCount % 80 === 0) await yieldUI();
+    }
+
+    // Adaptive threshold
+    const localWindow = 12;
+    const adjusted = new Array(flux.length).fill(0);
+    for (let i = 0; i < flux.length; i++) {
+      let s = 0, c = 0;
+      for (let j = Math.max(0, i - localWindow); j <= Math.min(flux.length - 1, i + localWindow); j++) {
+        s += flux[j]; c++;
+      }
+      adjusted[i] = Math.max(0, flux[i] - (s / c) * 1.3);
+    }
+
+    const maxFlux = adjusted.length > 0 ? Math.max(...adjusted) : 0;
+    const onsetThreshold = maxFlux * 0.18;
+    const minGap = 0.08;
+    const onsets = [];
+    for (let i = 1; i < adjusted.length - 1; i++) {
+      if (adjusted[i] > onsetThreshold && adjusted[i] >= adjusted[i - 1] && adjusted[i] >= adjusted[i + 1]) {
+        const t = fluxTimes[i];
+        if (onsets.length === 0 || t - onsets[onsets.length - 1] > minGap) onsets.push(t);
+      }
+    }
+
+    // --- 3. Tempo + stability from IOIs ---
+    let bpm = null;
+    let tempoStability = null;
+    if (onsets.length >= 4) {
+      const iois = [];
+      for (let i = 1; i < onsets.length; i++) iois.push(onsets[i] - onsets[i - 1]);
+      const sorted = [...iois].sort((a, b) => a - b);
+      const medianIoi = sorted[Math.floor(sorted.length / 2)];
+      let estimatedBpm = 60 / medianIoi;
+      while (estimatedBpm < 55) estimatedBpm *= 2;
+      while (estimatedBpm > 220) estimatedBpm /= 2;
+      bpm = Math.round(estimatedBpm);
+      const mean = iois.reduce((s, v) => s + v, 0) / iois.length;
+      const variance = iois.reduce((s, v) => s + (v - mean) ** 2, 0) / iois.length;
+      const cv = mean > 0 ? Math.sqrt(variance) / mean : 1;
+      tempoStability = Math.max(0, Math.min(100, Math.round((1 - cv * 1.6) * 100)));
+    }
+
+    // --- 4. Loudness consistency from peak RMS at each onset ---
+    let loudnessConsistency = null;
+    if (onsets.length >= 4) {
+      const peakRms = [];
+      for (const t of onsets) {
+        const startIdx = Math.max(0, Math.floor(t / 0.02));
+        const endIdx = Math.min(rms.length, startIdx + 6);
+        let pk = 0;
+        for (let i = startIdx; i < endIdx; i++) if (rms[i] > pk) pk = rms[i];
+        if (pk > 0) peakRms.push(pk);
+      }
+      if (peakRms.length >= 4) {
+        const mean = peakRms.reduce((s, v) => s + v, 0) / peakRms.length;
+        const variance = peakRms.reduce((s, v) => s + (v - mean) ** 2, 0) / peakRms.length;
+        const cv = mean > 0 ? Math.sqrt(variance) / mean : 1;
+        loudnessConsistency = Math.max(0, Math.min(100, Math.round((1 - cv * 1.3) * 100)));
+      }
+    }
+    await yieldUI();
+
+    // --- 5. Pitch tracking via YIN (skip for chord mode) ---
+    let pitchEvents = [];
+    let avgPitchOffset = null;
+    if (recState.type !== 'chord') {
+      const pitchWin = 1024;
+      const pitchHop = 512;
+      let counter = 0;
+      for (let i = 0; i + pitchWin < samples.length; i += pitchHop) {
+        const frame = samples.slice(i, i + pitchWin);
+        let energy = 0;
+        for (let j = 0; j < frame.length; j++) energy += frame[j] ** 2;
+        if (energy / frame.length < 0.0005) continue;
+
+        const r = yinPitch(frame, targetRate);
+        if (r.freq > 70 && r.freq < 1500 && r.confidence > 0.5) {
+          const midi = freqToMidi(r.freq);
+          if (midi > 30 && midi < 90) {
+            const nearest = Math.round(midi);
+            pitchEvents.push({
+              time: i / targetRate,
+              freq: r.freq,
+              midi,
+              cents: (midi - nearest) * 100,
+              conf: r.confidence
+            });
+          }
+        }
+        counter++;
+        if (counter % 60 === 0) await yieldUI();
+      }
+      // Average pitch offset on stable segments
+      if (pitchEvents.length >= 5) {
+        const stable = [];
+        for (let i = 1; i < pitchEvents.length - 1; i++) {
+          const a = pitchEvents[i].midi;
+          const prev = pitchEvents[i - 1].midi;
+          const next = pitchEvents[i + 1].midi;
+          if (Math.abs(a - prev) < 0.3 && Math.abs(a - next) < 0.3) stable.push(pitchEvents[i].cents);
+        }
+        if (stable.length >= 3) {
+          avgPitchOffset = Math.round(stable.reduce((s, v) => s + v, 0) / stable.length);
+        }
+      }
+    }
+
+    // --- 6. Suspicious frames: brief energy spikes not aligned with onsets ---
+    const suspicious = [];
+    for (let i = 2; i < rms.length - 2; i++) {
+      if (rms[i] > 0.12 &&
+          rms[i] > rms[i - 1] * 1.7 &&
+          rms[i] > rms[i + 1] * 1.4 &&
+          rms[i] > rms[i - 2] * 2 &&
+          rms[i] > rms[i + 2] * 1.8) {
+        const t = i * 0.02;
+        const nearOnset = onsets.some(o => Math.abs(o - t) < 0.06);
+        if (!nearOnset) {
+          suspicious.push({ time: t, type: 'spike' });
+          if (suspicious.length >= 8) break;
+        }
+      }
+    }
+
+    const analysis = {
+      duration,
+      sampleRate: targetRate,
+      recordingType: recState.type,
+      samples,           // kept for visualization, not persisted
+      rms,
+      rmsHopSec: 0.02,
+      onsets,
+      pitchEvents,
+      bpm,
+      tempoStability,
+      loudnessConsistency,
+      avgPitchOffset,
+      suspicious
+    };
+
+    recState.currentAnalysis = analysis;
+    document.getElementById('recResult').classList.remove('hidden');
+    await yieldUI();   // wait one tick for layout so canvas widths are real
+    renderAnalysisResult(analysis);
+    document.getElementById('recStatus').textContent = '分析完成 · 可以播放、让 AI 解读或保存';
+  }
+
+  // ============================================================
+  // RENDER ANALYSIS RESULT
+  // ============================================================
+  function renderAnalysisResult(a) {
+    drawWaveform(a);
+    if (a.recordingType === 'chord') {
+      document.getElementById('pitchVizBlock').classList.add('hidden');
+    } else {
+      document.getElementById('pitchVizBlock').classList.remove('hidden');
+      drawPitchCurve(a);
+    }
+    drawRmsEnvelope(a);
+
+    // BPM
+    if (a.bpm) {
+      document.getElementById('metricBpm').innerHTML = `${a.bpm}<span class="unit">bpm</span>`;
+      const j = a.bpm < 70 ? '慢速练习' : a.bpm < 100 ? '中速' : a.bpm < 140 ? '中快' : '较快';
+      document.getElementById('judgeBpm').textContent = j;
+    } else {
+      document.getElementById('metricBpm').innerHTML = `—<span class="unit">bpm</span>`;
+      document.getElementById('judgeBpm').textContent = '拨弦点不足（< 4 次）';
+    }
+
+    // Tempo stability
+    if (a.tempoStability !== null) {
+      document.getElementById('metricTempo').innerHTML = `${a.tempoStability}<span class="unit">/100</span>`;
+      document.getElementById('barTempo').style.width = a.tempoStability + '%';
+      document.getElementById('judgeTempo').textContent = judgeTempo(a.tempoStability);
+    } else {
+      document.getElementById('metricTempo').innerHTML = `—<span class="unit">/100</span>`;
+      document.getElementById('barTempo').style.width = '0%';
+      document.getElementById('judgeTempo').textContent = '—';
+    }
+
+    // Pitch
+    if (a.avgPitchOffset !== null) {
+      const sign = a.avgPitchOffset > 0 ? '+' : '';
+      document.getElementById('metricPitch').innerHTML = `${sign}${a.avgPitchOffset}<span class="unit">cents</span>`;
+      document.getElementById('judgePitch').textContent = judgePitch(a.avgPitchOffset);
+    } else {
+      document.getElementById('metricPitch').innerHTML = `—<span class="unit">cents</span>`;
+      document.getElementById('judgePitch').textContent =
+        a.recordingType === 'chord' ? '和弦模式跳过' : '未检测到稳定音高';
+    }
+
+    // Loudness
+    if (a.loudnessConsistency !== null) {
+      document.getElementById('metricLoud').innerHTML = `${a.loudnessConsistency}<span class="unit">/100</span>`;
+      document.getElementById('barLoud').style.width = a.loudnessConsistency + '%';
+      document.getElementById('judgeLoud').textContent = judgeLoud(a.loudnessConsistency);
+    } else {
+      document.getElementById('metricLoud').innerHTML = `—<span class="unit">/100</span>`;
+      document.getElementById('barLoud').style.width = '0%';
+      document.getElementById('judgeLoud').textContent = '—';
+    }
+
+    // Findings
+    const findings = [];
+    if (a.tempoStability !== null && a.tempoStability < 60 && a.bpm) {
+      findings.push({
+        time: '整体',
+        text: `节奏稳定性 ${a.tempoStability}/100，拨弦/扫弦间隔波动较大。建议跟节拍器从 60-70 BPM 开始，4 拍一组循环。`
+      });
+    }
+    if (a.avgPitchOffset !== null && Math.abs(a.avgPitchOffset) > 22) {
+      const dir = a.avgPitchOffset > 0 ? '高' : '低';
+      const big = Math.abs(a.avgPitchOffset) > 40;
+      findings.push({
+        time: '音准',
+        text: `平均音高偏${dir} ${Math.abs(a.avgPitchOffset)} 音分（半音 = 100 cents）。${big ? '建议先用调音器确认每根弦是否准。' : '可能是按弦力度过大把弦推高了，或调弦有些许偏差。'}`
+      });
+    }
+    if (a.loudnessConsistency !== null && a.loudnessConsistency < 60) {
+      findings.push({
+        time: '力度',
+        text: `力度均匀度 ${a.loudnessConsistency}/100，部分拨弦/扫弦明显比其他更重或更轻。注意右手发力是否一致，特别是上下扫弦的力量。`
+      });
+    }
+    for (const s of a.suspicious.slice(0, 4)) {
+      findings.push({
+        time: formatRecTime(s.time),
+        text: '能量尖峰，可能是打品 / 杂音 / 失误。听听这个位置。'
+      });
+    }
+
+    const list = document.getElementById('findingsList');
+    if (findings.length === 0) {
+      list.innerHTML = '<div style="color:var(--sage); font-style:italic; font-family:Fraunces,serif; padding:4px 0;">✓ 没有明显异常 — 各项指标都在合理范围</div>';
+    } else {
+      list.innerHTML = findings.map(f =>
+        `<div class="finding-item">
+          <span class="finding-time">${f.time}</span>
+          <span>${f.text}</span>
+        </div>`
+      ).join('');
+    }
+  }
+
+  function judgeTempo(s) {
+    if (s >= 85) return '稳';
+    if (s >= 70) return '尚可';
+    if (s >= 55) return '不太稳';
+    return '不稳';
+  }
+  function judgePitch(o) {
+    const a = Math.abs(o);
+    if (a < 10) return '准';
+    if (a < 25) return '略偏';
+    if (a < 50) return '偏离';
+    return '走音';
+  }
+  function judgeLoud(s) {
+    if (s >= 85) return '均匀';
+    if (s >= 70) return '尚可';
+    if (s >= 55) return '不太均';
+    return '不均';
+  }
+  function formatRecTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = (seconds - m * 60).toFixed(1);
+    return `${m}:${s.padStart(4, '0')}`;
+  }
+
+  // ============================================================
+  // VISUALIZATION
+  // ============================================================
+  function setupCanvas(id) {
+    const canvas = document.getElementById(id);
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const cssH = parseInt(canvas.getAttribute('height'));
+    canvas.width = Math.max(1, rect.width * dpr);
+    canvas.height = cssH * dpr;
+    canvas.style.height = cssH + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w: rect.width, h: cssH };
+  }
+
+  function drawWaveform(a) {
+    const { ctx, w, h } = setupCanvas('waveCanvas');
+    ctx.clearRect(0, 0, w, h);
+    const samples = a.samples;
+    const spp = Math.max(1, Math.floor(samples.length / w));
+    ctx.strokeStyle = 'rgba(31, 26, 20, 0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    const yMid = h / 2;
+    const amp = h / 2 * 0.95;
+    for (let x = 0; x < w; x++) {
+      let lo = 0, hi = 0;
+      const s = x * spp;
+      const e = Math.min(samples.length, s + spp);
+      for (let i = s; i < e; i++) {
+        if (samples[i] > hi) hi = samples[i];
+        if (samples[i] < lo) lo = samples[i];
+      }
+      ctx.moveTo(x + 0.5, yMid + lo * amp);
+      ctx.lineTo(x + 0.5, yMid + hi * amp);
+    }
+    ctx.stroke();
+    // onset markers
+    ctx.strokeStyle = 'rgba(184, 85, 42, 0.7)';
+    ctx.lineWidth = 1.5;
+    for (const t of a.onsets) {
+      const x = (t / a.duration) * w;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+  }
+
+  function drawPitchCurve(a) {
+    const { ctx, w, h } = setupCanvas('pitchCanvas');
+    ctx.clearRect(0, 0, w, h);
+    const events = a.pitchEvents;
+    if (events.length === 0) {
+      ctx.fillStyle = '#9b8c7a';
+      ctx.font = 'italic 12px Fraunces, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('未检测到稳定音高（可能不是单音演奏）', w / 2, h / 2);
+      return;
+    }
+    let minM = Infinity, maxM = -Infinity;
+    for (const e of events) {
+      if (e.midi < minM) minM = e.midi;
+      if (e.midi > maxM) maxM = e.midi;
+    }
+    minM = Math.floor(minM) - 1;
+    maxM = Math.ceil(maxM) + 1;
+    if (maxM - minM < 5) {
+      const center = (minM + maxM) / 2;
+      minM = Math.floor(center - 3);
+      maxM = Math.ceil(center + 3);
+    }
+    const range = maxM - minM;
+
+    // Semitone grid
+    ctx.strokeStyle = 'rgba(212, 203, 184, 0.55)';
+    ctx.lineWidth = 0.5;
+    ctx.font = '9px JetBrains Mono, monospace';
+    ctx.fillStyle = '#9b8c7a';
+    ctx.textBaseline = 'middle';
+    for (let m = Math.ceil(minM); m <= maxM; m++) {
+      const y = h - ((m - minM) / range) * h;
+      ctx.beginPath();
+      ctx.moveTo(28, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+      ctx.fillText(midiToName(m), 4, y);
+    }
+    // Pitch dots
+    ctx.fillStyle = 'rgba(184, 85, 42, 0.7)';
+    for (const e of events) {
+      const x = 28 + (e.time / a.duration) * (w - 28);
+      const y = h - ((e.midi - minM) / range) * h;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function drawRmsEnvelope(a) {
+    const { ctx, w, h } = setupCanvas('rmsCanvas');
+    ctx.clearRect(0, 0, w, h);
+    const rms = a.rms;
+    if (rms.length === 0) return;
+    const maxR = Math.max(...rms, 0.001);
+    ctx.fillStyle = 'rgba(93, 122, 71, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let i = 0; i < rms.length; i++) {
+      const x = (i / (rms.length - 1)) * w;
+      const y = h - (rms[i] / maxR) * h * 0.95;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(w, h);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(93, 122, 71, 0.85)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < rms.length; i++) {
+      const x = (i / (rms.length - 1)) * w;
+      const y = h - (rms[i] / maxR) * h * 0.95;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // ============================================================
+  // RECORDING ACTIONS
+  // ============================================================
+  function playCurrentRecording() {
+    if (!recState.currentBlob) return;
+    if (recState.playbackUrl) URL.revokeObjectURL(recState.playbackUrl);
+    recState.playbackUrl = URL.createObjectURL(recState.currentBlob);
+    if (!recState.playbackAudio) recState.playbackAudio = new Audio();
+    recState.playbackAudio.src = recState.playbackUrl;
+    recState.playbackAudio.play().catch(e => toast('播放失败：' + e.message));
+  }
+
+  function discardRecording() {
+    recState.currentBlob = null;
+    recState.currentAnalysis = null;
+    document.getElementById('recResult').classList.add('hidden');
+    document.getElementById('recTimer').textContent = '00:00';
+    document.getElementById('recStatus').textContent = '点击红点开始 · 建议 15-90 秒';
+    if (recState.playbackUrl) {
+      URL.revokeObjectURL(recState.playbackUrl);
+      recState.playbackUrl = null;
+    }
+  }
+
+  async function saveRecording() {
+    if (!recState.currentBlob || !recState.currentAnalysis) return;
+    const typeLabel = { single: '单音', chord: '和弦扫弦', mixed: '混合' }[recState.type];
+    const defaultTitle = `${typeLabel} · ${formatDate(todayISO())}`;
+    const title = prompt('给这段录音起个名字', defaultTitle);
+    if (title === null) return;
+
+    // Convert blob to base64 in chunks (to avoid stack overflow on large arrays)
+    const arrayBuffer = await recState.currentBlob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
+
+    // Storage size check (very rough)
+    const approxBytes = base64.length * 0.75;
+    if (approxBytes > 4.5 * 1024 * 1024) {
+      toast('录音过大（' + (approxBytes / 1024 / 1024).toFixed(1) + 'MB）— 建议录制更短');
+      return;
+    }
+
+    const id = uid();
+    const a = recState.currentAnalysis;
+    const meta = {
+      id,
+      date: todayISO(),
+      title: (title || defaultTitle).trim(),
+      duration: a.duration,
+      type: a.recordingType,
+      mimeType: recState.currentBlob.type,
+      bpm: a.bpm,
+      tempoStability: a.tempoStability,
+      loudnessConsistency: a.loudnessConsistency,
+      avgPitchOffset: a.avgPitchOffset,
+      onsetCount: a.onsets.length,
+      suspiciousCount: a.suspicious.length,
+      onsets: a.onsets.slice(0, 200),  // cap
+      sizeKb: Math.round(approxBytes / 1024)
+    };
+
+    recordings.push(meta);
+    try {
+      await saveRecordingAudio(id, base64);
+      await saveRecordingsList();
+      toast('✓ 已保存录音');
+      discardRecording();
+      renderRecordingList();
+    } catch (e) {
+      recordings.pop();
+      try { await deleteRecordingAudio(id); } catch (e) {}
+      toast('保存失败：' + (e.message || '可能存储已满'));
+    }
+  }
+
+  async function playSavedRecording(id) {
+    const meta = recordings.find(r => r.id === id);
+    if (!meta) return;
+    const base64 = await loadRecordingAudio(id);
+    if (!base64) {
+      toast('音频文件已丢失（可能被清除）');
+      return;
+    }
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: meta.mimeType || 'audio/webm' });
+    if (recState.playbackUrl) URL.revokeObjectURL(recState.playbackUrl);
+    recState.playbackUrl = URL.createObjectURL(blob);
+    if (!recState.playbackAudio) recState.playbackAudio = new Audio();
+    recState.playbackAudio.src = recState.playbackUrl;
+    recState.playbackAudio.play().catch(e => toast('播放失败：' + e.message));
+  }
+
+  async function deleteRecording(id) {
+    if (!confirm('删除这段录音？')) return;
+    recordings = recordings.filter(r => r.id !== id);
+    await saveRecordingsList();
+    await deleteRecordingAudio(id);
+    renderRecordingList();
+    toast('已删除录音');
+  }
+
+  function renderRecordingList() {
+    const list = document.getElementById('recordingList');
+    document.getElementById('recCount').textContent = String(recordings.length).padStart(2, '0');
+    if (recordings.length === 0) {
+      list.innerHTML = '';
+      return;
+    }
+    const sorted = [...recordings].sort((a, b) => b.id.localeCompare(a.id));
+    list.innerHTML = sorted.map(r => {
+      const typeLabel = { single: '单音', chord: '和弦', mixed: '混合' }[r.type] || '';
+      const stats = [];
+      if (r.bpm) stats.push(`${r.bpm} bpm`);
+      if (r.tempoStability !== null) stats.push(`节奏 ${r.tempoStability}`);
+      if (r.loudnessConsistency !== null) stats.push(`力度 ${r.loudnessConsistency}`);
+      return `
+        <div class="rec-row">
+          <button class="rec-row-play" onclick="playSavedRecording('${r.id}')" title="播放">▶</button>
+          <div class="rec-row-info">
+            <div class="rec-row-title">${escapeHtml(r.title)}</div>
+            <div class="rec-row-meta">${r.date} · ${typeLabel} · ${r.duration.toFixed(1)}s · ${r.sizeKb||'?'}KB</div>
+          </div>
+          <div class="rec-row-stats">${stats.join(' · ') || '—'}</div>
+          <button class="btn btn-sm btn-ghost" onclick="askAIAboutSaved('${r.id}')" title="让 AI 解读这段">AI</button>
+          <button class="card-x" onclick="deleteRecording('${r.id}')" title="删除" style="opacity:0.6;">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================================
+  // AI ANALYSIS OF RECORDING
+  // ============================================================
+  async function askAIAboutRecording() {
+    if (!recState.currentAnalysis) return;
+    await aiAnalyzeRecording(recState.currentAnalysis, null);
+  }
+
+  async function askAIAboutSaved(id) {
+    const m = recordings.find(r => r.id === id);
+    if (!m) return;
+    const pseudo = {
+      duration: m.duration,
+      bpm: m.bpm,
+      tempoStability: m.tempoStability,
+      loudnessConsistency: m.loudnessConsistency,
+      avgPitchOffset: m.avgPitchOffset,
+      onsets: m.onsets || [],
+      suspicious: [],
+      recordingType: m.type
+    };
+    await aiAnalyzeRecording(pseudo, m.title);
+  }
+
+  async function aiAnalyzeRecording(analysis, title) {
+    document.querySelector('.ai-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const content = document.getElementById('aiContent');
+    const btn = document.getElementById('aiBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span>解读录音中...</span>';
+    content.innerHTML = `
+      <div class="ai-loading">
+        <div class="ai-loading-dot"></div>
+        <div class="ai-loading-dot"></div>
+        <div class="ai-loading-dot"></div>
+        <span>Claude 正在分析这段录音的指标...</span>
+      </div>
+    `;
+
+    const data = {
+      recording_title: title || '当前录音',
+      duration_sec: +analysis.duration.toFixed(2),
+      type: analysis.recordingType,
+      bpm: analysis.bpm,
+      tempo_stability_0_100: analysis.tempoStability,
+      loudness_consistency_0_100: analysis.loudnessConsistency,
+      avg_pitch_offset_cents: analysis.avgPitchOffset,
+      note_attack_count: analysis.onsets.length,
+      suspicious_events: (analysis.suspicious || []).slice(0, 8).map(s => ({ t_sec: +s.time.toFixed(2) }))
+    };
+
+    const recentSessions = [...state.sessions]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 5)
+      .map(s => ({
+        date: s.date, duration_min: s.duration,
+        chords: s.chords, songs: s.songs,
+        focus: s.focus, notes: s.notes
+      }));
+
+    const prompt = `你是一位经验丰富的吉他老师。学生录了一段练习音频，浏览器跑了客观的音频分析（不是听音，是基于算法的客观指标）。请基于这些数字 + 他的练习背景，给出针对性的诊断和改进建议。
+
+# 这段录音的客观指标
+\`\`\`json
+${JSON.stringify(data, null, 2)}
+\`\`\`
+
+# 指标解读说明（你必须理解的）
+- **bpm**: 通过 onset 检测推算的节拍速度。null 表示拨弦点不足（< 4 次）无法估算。
+- **tempo_stability_0_100**: 拨弦间隔变异系数算出的稳定性。85+ 稳；70-85 尚可；< 60 不稳。
+- **loudness_consistency_0_100**: 每次拨弦峰值音量的均匀度。85+ 均匀；< 60 起伏大。
+- **avg_pitch_offset_cents**: 平均音高偏离最近半音的音分数（100 cents = 1 半音）。±10 内准；±10-25 略偏；> 35 可能调弦问题或按弦力度过大。
+- **suspicious_events**: 算法检测到的可疑能量尖峰，可能是打品/杂音/失误，但不一定 100% 准。
+- **type**: single = 单音/旋律，chord = 和弦扫弦，mixed = 混合。注意 chord 模式不分析音高（因为多音不可靠）。
+- 重要局限：算法**无法**判断"和弦是否按得干净"、"音色好不好"、"具体演奏的是什么"。只能看客观的节奏/音高/力度数据。
+
+# 学生最近的练习记录
+\`\`\`json
+${JSON.stringify(recentSessions, null, 2)}
+\`\`\`
+
+# 任务
+用中文回复，结构如下：
+
+## 🩺 诊断
+基于具体数字（必须引用！）说出最值得关注的 1-2 个问题。例：「节奏稳定性 58/100 + bpm 95 左右，说明扫弦间隔不均，特别是和弦切换时可能拖拍」。要具体、可证伪。如果所有指标都健康，就直说"指标都不错，听感问题可能在算法看不到的地方（如和弦音色 / 闷弦），可以自己回听对照"。
+
+## 🔧 怎么改（2-3 条可执行动作）
+每条要可以**今天就开始**：
+- 具体练习方法（如："开节拍器 70 BPM，只练 Am→C 两个和弦的切换，4 拍换一次，每天 10 分钟"）
+- 多久（每天多少时间，几天后再录一次对比）
+- 怎么判断改进了（量化标准，如"目标稳定性 75/100"）
+
+## 💭 备注（可选，没什么要说就省略）
+需要谨慎解读的地方，比如"chord 模式没有音准数据"、"建议下次录音前用调音器确认"。
+
+要求：
+- 直接说，不要"作为吉他老师"开场
+- 引用具体数字（"58/100" 不是 "较低"）
+- 结合最近练的内容（如果相关）
+- 避免空泛的"多加练习""保持耐心"`;
+
+    try {
+      const result = await callClaudeAPI([{ role: "user", content: prompt }], 1500);
+      const text = (result.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+      content.innerHTML = renderMarkdown(text);
+    } catch (e) {
+      if (e.noKey) {
+        content.innerHTML = `<div style="color:var(--muted); font-style:italic; padding:14px 0;">需要配置 Anthropic API key 才能用 AI 功能。请在弹出的窗口里输入，或之后点 ⋯ → API Key 配置。</div>`;
+      } else {
+        content.innerHTML = `<div style="color:var(--accent);">解读失败：${e.message || '未知错误'}</div>`;
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>重新生成建议</span>';
+    }
+  }
+
+  // Re-render canvas on window resize so they stay sharp
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (recState.currentAnalysis) renderAnalysisResult(recState.currentAnalysis);
+    }, 200);
+  });
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  (async () => {
+    await loadState();
+    await loadRecordings();
+    renderAll();
+    renderRecordingList();
+
+    // Update subtitle with motivational message based on data
+    const stats = computeStats();
+    let sub = '一周一步，进阶不止于初学者';
+    if (stats.streak >= 7) {
+      sub = `🔥 ${stats.streak} 天连续练习 — 节奏漂亮`;
+    } else if (stats.totalMinutes > 600) {
+      sub = `已累计 ${stats.totalHours} 小时 — 持续就是答案`;
+    } else if (state.sessions.length > 0) {
+      sub = '记录下来才能看见进步';
+    }
+    document.getElementById('subtitle').textContent = sub;
+
+    // Hide loading
+    setTimeout(() => {
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }, 300);
+  })();
+
+  // Animated dots in loading
+  let dotCount = 0;
+  setInterval(() => {
+    const el = document.getElementById('dots');
+    if (el) {
+      dotCount = (dotCount + 1) % 4;
+      el.textContent = '.'.repeat(dotCount);
+    }
+  }, 400);
+
+  // Register service worker for offline support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
